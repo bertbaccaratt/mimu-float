@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MIMU FLOATZ — Duck Race!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="sky-glow"></div>
+  <div class="app">
+    <header class="header">
+      <img class="logo" src="assets/logo.png" alt="MIMU FLOATZ mascot">
+      <div class="header-text">
+        <h1>MIMU FLOATZ</h1>
+        <p class="tagline">Name your Mimus. Set the race length. Up to 27 racers!</p>
+      </div>
+      <button type="button" id="mute-toggle" class="mute-btn" aria-label="Toggle sound" aria-pressed="false" title="Mute sound">
+        <span class="mute-icon" aria-hidden="true">🔊</span>
+      </button>
+    </header>
+
+    <!-- Enter -->
+    <section id="enter" class="panel enter-panel">
+      <h2>Welcome to MIMU FLOAT</h2>
+      <p class="enter-lead">Pick your path — watch the race live or run it from the booth.</p>
+
+      <div class="enter-stats" aria-label="Arena totals">
+        <div class="stat-card">
+          <span class="stat-value" id="stat-races">0</span>
+          <span class="stat-label">Total Races Ran</span>
+        </div>
+        <div class="stat-card stat-card--ape">
+          <span class="stat-value" id="stat-apecoin">0 $APE</span>
+          <span class="stat-label">Total APECOIN Won</span>
+        </div>
+        <div class="stat-card stat-card--mimu">
+          <span class="stat-value" id="stat-mimu-nft">0 MIMU NFTs</span>
+          <span class="stat-label">Total MIMU NFT Won</span>
+        </div>
+        <div class="stat-card stat-card--loss">
+          <span class="stat-value" id="stat-losses">0</span>
+          <span class="stat-label">Total Race Losses</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="stat-visitors">0</span>
+          <span class="stat-label">Total Site Visitor</span>
+        </div>
+      </div>
+
+      <div class="enter-actions">
+        <button type="button" id="btn-wait-race" class="btn btn-primary btn-enter-main">Wait for Race</button>
+        <button type="button" id="btn-admin" class="btn btn-ghost btn-admin">Admin Only</button>
+      </div>
+    </section>
+
+    <!-- Admin password gate -->
+    <div id="admin-gate" class="admin-gate hidden" aria-hidden="true">
+      <div class="admin-gate-card panel">
+        <h3>Admin Access</h3>
+        <p class="hint">Race setup is restricted to staff.</p>
+        <input type="password" id="admin-password" class="admin-password-input" placeholder="Password" autocomplete="off">
+        <p id="admin-error" class="admin-error hidden">Incorrect password</p>
+        <div class="admin-gate-actions">
+          <button type="button" id="admin-submit" class="btn btn-primary">Enter Setup</button>
+          <button type="button" id="admin-cancel" class="btn btn-ghost">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Public waiting -->
+    <section id="waiting" class="panel waiting-panel hidden">
+      <h2>Waiting for Race</h2>
+      <div class="waiting-visual" aria-hidden="true">
+        <span class="waiting-ring"></span>
+        <span class="waiting-ring waiting-ring--delay"></span>
+        <img class="waiting-logo" src="assets/logo.png" alt="">
+      </div>
+      <p id="waiting-status" class="waiting-status">Hang tight — the next race is being prepared…</p>
+      <p id="waiting-preview" class="waiting-preview"></p>
+      <button type="button" id="btn-leave-waiting" class="btn btn-ghost">Back</button>
+    </section>
+
+    <!-- Setup (admin only) -->
+    <section id="setup" class="panel hidden admin-only-section">
+      <h2>Race Setup</h2>
+
+      <div class="field">
+        <label>Race length</label>
+        <div class="duration-picker">
+          <div class="duration-part">
+            <input type="number" id="duration-min" min="0" max="60" value="1" aria-label="Minutes">
+            <span>min</span>
+          </div>
+          <div class="duration-part">
+            <input type="number" id="duration-sec" min="0" max="59" value="0" aria-label="Seconds">
+            <span>sec</span>
+          </div>
+        </div>
+        <span class="hint">Timer counts down during the race (max 1 hour)</span>
+      </div>
+
+      <div class="field">
+        <label>Wager</label>
+        <div class="bet-type-picker">
+          <label class="bet-option">
+            <input type="radio" name="bet-type" value="ape" checked>
+            <span>APECOIN</span>
+          </label>
+          <label class="bet-option">
+            <input type="radio" name="bet-type" value="mimu">
+            <span>MIMU NFT</span>
+          </label>
+        </div>
+        <div class="bet-amount-row">
+          <input type="number" id="bet-amount" min="1" step="1" value="500" aria-label="Wager amount per racer">
+          <span id="bet-unit-label">$APE per racer</span>
+        </div>
+        <span class="hint" id="bet-pot-hint">Total pot: 1,500 $APE</span>
+      </div>
+
+      <div class="field">
+        <label>Your racers <span class="hint-inline">(2–27)</span></label>
+        <div id="duck-list" class="duck-list"></div>
+        <button type="button" id="add-duck" class="btn btn-ghost">+ Add Racer</button>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="start-race" class="btn btn-primary">Start Race</button>
+      </div>
+    </section>
+
+    <!-- Race -->
+    <section id="race" class="race-section hidden">
+      <canvas id="game-canvas"></canvas>
+      <div id="pre-race-countdown" class="pre-race-countdown hidden">
+        <div class="countdown-card">
+          <p class="countdown-kicker">GET READY FOR THE RACE</p>
+          <p id="countdown-number" class="countdown-number">30</p>
+          <p id="countdown-hint" class="countdown-hint">Place your picks now!</p>
+        </div>
+      </div>
+      <div id="predict-panel" class="predict-panel public-only hidden">
+        <div class="predict-head">
+          <h3>Who wins? <span class="predict-emoji">🎯</span></h3>
+          <p id="predict-tickets" class="predict-tickets">🎟️ 3 tickets left</p>
+        </div>
+        <p id="predict-status" class="predict-status">Place up to 3 tickets on your pick(s)</p>
+        <div id="predict-picks" class="predict-picks"></div>
+        <p id="predict-result" class="predict-result hidden"></p>
+      </div>
+      <div id="race-overlay" class="race-overlay hidden">
+        <div id="winner-card" class="winner-card">
+          <div class="trophy">🏆</div>
+          <h2 id="winner-name">Quackers wins!</h2>
+          <div id="winner-witness" class="winner-witness hidden">
+            <div class="witness-art-wrap">
+              <img src="assets/witness-them.png" alt="" class="witness-graphic">
+              <span class="witness-caption">WITNESS THEM!</span>
+            </div>
+          </div>
+          <p id="winner-prize" class="winner-prize"></p>
+          <p id="winner-sub">What a spectacular finish!</p>
+          <div class="winner-actions">
+            <button type="button" id="double-or-nothin" class="btn btn-double admin-only">DOUBLE OR NOTHIN</button>
+            <button type="button" id="race-again" class="btn btn-primary admin-only">Race Again</button>
+            <button type="button" id="public-wait-next" class="btn btn-primary public-only hidden">Wait for Next Race</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="audio.js"></script>
+  <script src="stats.js"></script>
+  <script src="predictions.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
